@@ -1,0 +1,185 @@
+---
+title: "Regression 03"
+subtitle: "Sitzung 09: Forum AQUA-d"
+author: Samuel Merk
+footer: "Samuel Merk | Pädagogische Hochschule Karlsruhe"
+institute: Institut für Schul- und Unterrichtsforschung
+logo: img/PH_logo.png
+picture: img/KA.jpeg
+date: today
+lang: de
+date-format: "dddd, [den] D. MMMM, YYYY"
+embed-resources: false
+format: rlille-revealjs
+lightbox: true
+bibliography: references.bib
+csl: apa.csl
+---
+
+
+## Übersicht
+
+
+```{r }
+#| label: libraries
+#| echo: false
+library(fontawesome)
+```
+
+
+| {{< iconify fa6-solid arrows-spin >}}      | Orga. und sonstige Updates      |
+|-------------------------------------------:|:---------------------------------
+| {{< iconify fa6-solid brain >}}            | Vorwissen Regression aktivieren |
+| {{< iconify fa6-solid images >}}           | Datenbeispiel Max               |
+| {{< iconify fa6-solid chalkboard-user >}}  | Datenbeispiel Carolin           |
+             
+: {#tbl-agenda tbl-colwidths="[10,90]"}
+
+<!-- style the agenda table -->
+<style>
+#tbl-agenda table th {font-weight: normal !important; border: none !important;}
+#tbl-agenda table td {font-weight: normal !important; border: none !important;}
+</style>
+
+
+::: footer
+{{< iconify academicons:open-materials >}} Folien cc-by {{< iconify academicons:creative-commons-by >}} unter [https://superkurzlink](https://superkurzlink)
+:::
+
+
+# Vorwissen {{< iconify fa6-solid brain >}} {.center .center-x}
+
+## Vorwissen {{< iconify fa6-solid brain >}} {.scrollable .smaller}
+Eine Forschergruppe untersucht das Leseverständnis von Schülerinnen und Schülern. Sie vermuten, dass das Leseverständnis auf iPads schlechter ist als auf Papier [@delgado2018]. Sie führen ein RCT in Einzelsitzungen im Labor durch. Die abhängige Variable ist die Anzahl der korrekt beantworteten Fragen. Die unabhängige Variable ist die Art des Mediums (Papier vs. iPad). Als Kovariate wird das allgemeine Leseverständnis erfasst (ELFE). Wie interpretiert ihr die folgenden Ergebnisse?
+```{r}
+#| label: datageneration
+#| echo: false
+#| results: hide
+
+library(tidyverse)
+set.seed(2505)
+data_reading <- 
+  tibble(
+    elfe = rnorm(120, 0, 1)) |> 
+  mutate(
+    medium = sample(c("paper", "ipad"), 120, replace = TRUE),
+    lesen = elfe +
+            rnorm(120, 0, 3) - 
+            ifelse(medium == "ipad", rnorm(120, .3, 1), 0),
+    lesen = lesen*30 + min(lesen)
+)
+```
+
+
+```{r}
+#| echo: true
+
+library(tidyverse)
+library(sjPlot)
+library(performance)
+
+# plot raw data
+ggplot(data_reading, aes(x = elfe, y = lesen, color = medium)) +
+  geom_jitter() +
+  stat_smooth(method = "lm", se = FALSE) +
+  theme_minimal()
+
+# fit models
+mod0 <- lm(lesen ~ medium, data = data_reading)
+mod1 <- lm(lesen ~ elfe, data = data_reading)
+mod2 <- lm(lesen ~ medium + elfe, data = data_reading)
+
+# overview results
+tab_model(mod0, mod1, mod2, show.std = T, show.ci = F)
+```
+
+
+```{r}
+#| echo: true
+#| fig-height: 12
+# check assumptions
+check_model(mod2)
+```
+::: footer
+Scrollbare Folie {{< iconify fa6-solid square-caret-down >}} 
+:::
+
+# Datenbeispiel Max {{< iconify fa6-solid images >}} {.center .center-x}
+## Datenbeispiel Max {{< iconify fa6-solid images >}} 
+> FF: Welche der drei Stimuli (UV, `Bildimpuls_1`) induziert die höchste Ausprägung in der abhängigen Variable `POS_GES`
+
+> Aufgabe: Importiert die Daten `r xfun::embed_file("data/data_max_images.sav", "data_max_images.sav", fa("download"))` (oder nutzt, JASP, SPSS, etc.) und beantwortet die FF mithilfe einer Dummyregression
+
+## Datenbeispiel Max {{< iconify fa6-solid images >}} 
+```{r}
+library(haven)
+data_max_images <- 
+  read_sav("data/data_max_images.sav")
+```
+
+# Datenbeispiel Carolin {{< iconify fa6-solid images >}} {.center .center-x}
+## Datenbeispiel Max {{< iconify fa6-solid images >}} {.smaller}
+> Verschafft euch einen Überblick Carolins theoretischen Hintergrund und Forschungsfragen anhand ihres aktuellen Posterentwurfs `r xfun::embed_file("img/caro_poster.pdf", "caro_poster.pdf", fa("download"))`
+
+> Kategorisiert die Forschungsfragen anhand der erlernten Kategorien (Primär- /Sekundäranalyse; Explanativ/Explorativ/Deskriptiv; ...) und überlegt: Welche Gütekriterien sind deshalb besonders wichtig? Welche Design- und Analyseentscheidungen stärken oder schwächen diese?
+
+. . .
+
+> In `data_caro.sav` `r xfun::embed_file("data/data_caro.sav", "data_caro.sav", fa("download"))` stellt die Variable `B006_01` die Häufigkeit des Einsatzes digitaler Medien in der Schule beim Unterrichten dar. Im `data_icils18.sav` `r xfun::embed_file("data/data_icils18.sav", "data_icils18.sav", fa("download"))` entspricht dies der Variable `IT2G06A`. Testet damit Carolins erste Hypothese und diskutiert die interne und externe Validität des Ergebnisses.
+
+## Analyse Caro {.scrollable}
+```{r}
+#| echo: true
+# import raw data
+data_caro <- read_sav("data/data_caro.sav")
+data_icils2018 <- read_sav("data/data_icils18.sav")
+
+# combine data
+data_vergleich <- 
+  tibble(haeufigkeit = c(data_caro$B006_01, 
+                         data_icils2018$IT2G06A),
+         schulart = c(rep("primar", nrow(data_caro)),
+                      rep("sekundar", nrow(data_icils2018))))
+
+# plot raw data
+ggplot(data_vergleich, aes(schulart, haeufigkeit)) +
+  geom_boxplot() +
+  geom_jitter() +
+  theme_minimal()
+
+# calculate effect size
+library(effectsize)
+cohens_d(haeufigkeit ~ schulart, data = data_vergleich)
+cliffs_delta(haeufigkeit ~ schulart, data = data_vergleich)
+
+# fit model for inferential stats
+mod4 <- lm(haeufigkeit ~ schulart, data = data_vergleich)
+tab_model(mod4, show.std = T, show.ci = F)
+```
+
+
+```{r}
+#| echo: true
+#| fig-height: 12
+# check assumptions
+check_model(mod4)
+
+# estimate bayes factor
+library(BayesFactor)
+lmBF(haeufigkeit ~ schulart, data = data_vergleich |> na.omit())
+
+```
+::: footer
+Scrollbare Folie {{< iconify fa6-solid square-caret-down >}} 
+:::
+
+
+## Literatur
+::: footer
+
+:::
+
+<!-- nicht in das scss integrierbares css -->
+<style>
+div.callout-tip {border-left-color: #267326 !important;}
+</style>
