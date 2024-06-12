@@ -43,7 +43,7 @@ library(fontawesome)
 
 
 ::: footer
-{{< iconify academicons open-materials >}} Folien offen cc-by lizensiert unter [https://bit.ly/merk132](https://bit.ly/merk132 )
+{{< iconify academicons open-materials >}} Folien cc-by lizensiert unter [https://bit.ly/merk132](https://bit.ly/merk132)
 :::
 
 
