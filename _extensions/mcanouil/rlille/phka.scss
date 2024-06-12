@@ -67,9 +67,12 @@ p code:not(.sourceCode) {
     font-size: 1em;
 }
 
+/* Links */
 .reveal a {
     //font-size: 0.8em;
     color: #8cd000 !important;
+    font-weight: bold;
+    font-style: italic;
     text-decoration: none;
     transition: color .15s ease;
 }
